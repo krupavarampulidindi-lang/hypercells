@@ -1,7 +1,24 @@
 from fastapi import FastAPI
+import pyodbc   # or psycopg2 / mysql.connector depending on your DB
 
 app = FastAPI()
 
 @app.get("/")
 def home():
     return {"message": "Battery API is running"}
+
+@app.post("/add_battery/")
+def add_battery(category: str, cell_used_name: str, cell_capacity: str,
+                cell_name: str, total_voltage: float, charge_voltage: float,
+                discharge_voltage: float, life_cycle: int,
+                warranty_years: int, weight: float):
+    conn = pyodbc.connect("Driver={SQL Server};Server=YOUR_SERVER;Database=YOUR_DB;Trusted_Connection=yes;")
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO battery_specs 
+        (category, cell_used_name, cell_capacity, cell_name, total_voltage, charge_voltage, discharge_voltage, life_cycle, warranty_years, weight)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (category, cell_used_name, cell_capacity, cell_name, total_voltage, charge_voltage, discharge_voltage, life_cycle, warranty_years, weight))
+    conn.commit()
+    return {"status": "success"}
+
